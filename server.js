@@ -45,10 +45,14 @@ app.post("/api/chat", async (req, res) => {
         console.log("User message received:", message);
         console.log("Connecting to Gemini...");
 
-        const response = await ai.models.generateContent({
-            model: MODEL,
-            contents: message
-        });
+      const response = await ai.models.generateContent({
+  model: MODEL,
+  contents: message,
+  config: {
+    maxOutputTokens: 256,
+    temperature: 0.7
+  }
+});
 
         console.log("Gemini reply received!");
 

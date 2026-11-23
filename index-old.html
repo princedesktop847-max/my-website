@@ -35,13 +35,26 @@
         }
 
         .header {
-            padding: 20px;
+            padding: 18px 20px;
             text-align: center;
-            background: #111827;
+            background: linear-gradient(135deg, #111827, #172554);
+            border-bottom: 1px solid #334155;
+        }
+
+        .profile-photo {
+            width: 76px;
+            height: 76px;
+            display: block;
+            margin: 0 auto 10px;
+            border-radius: 50%;
+            object-fit: cover;
+            object-position: center 28%;
+            border: 3px solid #38bdf8;
+            box-shadow: 0 0 0 5px rgba(56, 189, 248, 0.12);
         }
 
         .header h2 { margin: 0; color: #38bdf8; }
-        .header p { color: #94a3b8; font-size: 13px; }
+        .header p { color: #94a3b8; font-size: 13px; margin: 7px 0 0; }
 
         #chatBox {
             flex: 1;
@@ -112,6 +125,7 @@
 <body>
     <div class="chat-container">
         <div class="header">
+            <img class="profile-photo" src="prince.jpg" alt="Profile photo">
             <h2>My AI Chatbot</h2>
             <p>Powered by Google Gemini</p>
         </div>

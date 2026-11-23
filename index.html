@@ -1,0 +1,236 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My AI Chatbot</title>
+
+    <style>
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #0f172a;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 15px;
+        }
+
+        .chat-container {
+            width: 100%;
+            max-width: 650px;
+            height: 85vh;
+            min-height: 450px;
+            background: #1e293b;
+            border-radius: 15px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border: 1px solid #334155;
+        }
+
+        .header {
+            padding: 18px 20px;
+            text-align: center;
+            background: linear-gradient(135deg, #111827, #172554);
+            border-bottom: 1px solid #334155;
+        }
+
+        .profile-photo {
+            width: 76px;
+            height: 76px;
+            display: block;
+            margin: 0 auto 10px;
+            border-radius: 50%;
+            object-fit: cover;
+            object-position: center 28%;
+            border: 3px solid #38bdf8;
+            box-shadow: 0 0 0 5px rgba(56, 189, 248, 0.12);
+        }
+
+        .header h2 { margin: 0; color: #38bdf8; }
+        .header p { color: #94a3b8; font-size: 13px; margin: 7px 0 0; }
+
+        #chatBox {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .message {
+            padding: 12px 15px;
+            margin-bottom: 15px;
+            border-radius: 12px;
+            max-width: 85%;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+        }
+
+        .user {
+            background: #0369a1;
+            margin-left: auto;
+        }
+
+        .bot {
+            background: #334155;
+            margin-right: auto;
+        }
+
+        .error {
+            background: #7f1d1d;
+            color: #fecaca;
+        }
+
+        .input-area {
+            display: flex;
+            gap: 10px;
+            padding: 15px;
+            background: #111827;
+        }
+
+        input {
+            flex: 1;
+            min-width: 0;
+            padding: 14px;
+            border: 1px solid #475569;
+            border-radius: 8px;
+            background: #1e293b;
+            color: white;
+            font-size: 15px;
+        }
+
+        button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            background: #0284c7;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="chat-container">
+        <div class="header">
+            <img class="profile-photo" src="prince.jpg" alt="Profile photo">
+            <h2>My AI Chatbot</h2>
+            <p>Powered by Google Gemini</p>
+        </div>
+
+        <div id="chatBox">
+            <div class="message bot">
+                Hello! Welcome. Ask me anything!
+            </div>
+        </div>
+
+        <div class="input-area">
+            <input type="text" id="userInput"
+                placeholder="Type your message..." autocomplete="off">
+            <button id="sendBtn" onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+
+    <script>
+        const chatBox = document.getElementById("chatBox");
+        const userInput = document.getElementById("userInput");
+        const sendBtn = document.getElementById("sendBtn");
+
+        function addMessage(text, sender, isError = false) {
+            const message = document.createElement("div");
+            message.className = "message " + sender;
+
+            if (isError) message.classList.add("error");
+
+            message.textContent = text;
+            chatBox.appendChild(message);
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            return message;
+        }
+
+        async function sendMessage() {
+            const message = userInput.value.trim();
+
+            if (!message || sendBtn.disabled) return;
+
+            addMessage(message, "user");
+            userInput.value = "";
+            sendBtn.disabled = true;
+
+            const loading = addMessage("Thinking...", "bot");
+            const controller = new AbortController();
+
+            const timeout = setTimeout(() => {
+                controller.abort();
+            }, 45000);
+
+            try {
+                const response = await fetch("/api/chat", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ message }),
+                    signal: controller.signal
+                });
+
+                const raw = await response.text();
+                let data;
+
+                try {
+                    data = JSON.parse(raw);
+                } catch {
+                    throw new Error("Server returned an invalid response.");
+                }
+
+                if (!response.ok) {
+                    throw new Error(
+                        typeof data.error === "string"
+                            ? data.error
+                            : JSON.stringify(data.error || data)
+                    );
+                }
+
+                if (!data.reply) {
+                    throw new Error("AI returned an empty reply.");
+                }
+
+                loading.remove();
+                addMessage(data.reply, "bot");
+
+            } catch (error) {
+                loading.remove();
+
+                const errorText = error.name === "AbortError"
+                    ? "Request timed out after 45 seconds. Please try again."
+                    : error.message;
+
+                console.error("CHAT ERROR:", error);
+                addMessage("Actual Error: " + errorText, "bot", true);
+
+            } finally {
+                clearTimeout(timeout);
+                sendBtn.disabled = false;
+                userInput.focus();
+            }
+        }
+
+        userInput.addEventListener("keydown", function(event) {
+            if (event.key === "Enter") sendMessage();
+        });
+    </script>
+</body>
+</html>

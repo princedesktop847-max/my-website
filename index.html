@@ -41,11 +41,32 @@ button,input,textarea{font:inherit}
 .new-chat:hover,.history-item:hover{background:#292929}
 .sidebar-label{font-size:12px;color:var(--muted);padding:12px 8px 2px}
 .history{overflow:auto;display:flex;flex-direction:column;gap:4px}
+.history-row{display:flex;align-items:center;gap:4px}
 .history-item{
- border:0;background:transparent;color:#ddd;text-align:left;
+ flex:1;min-width:0;border:0;background:transparent;color:#ddd;text-align:left;
  padding:10px;border-radius:8px;cursor:pointer;white-space:nowrap;
  overflow:hidden;text-overflow:ellipsis
 }
+.history-item.active{background:#303030}
+.rename-chat-btn{
+ flex:0 0 32px;border:0;background:transparent;color:var(--muted);
+ border-radius:7px;padding:7px 4px;cursor:pointer
+}
+.rename-chat-btn:hover{background:#333;color:white}
+.attach-btn{
+ width:38px;height:38px;border:0;border-radius:12px;cursor:pointer;
+ background:transparent;color:#ddd;font-size:22px
+}
+.attach-btn:hover{background:#444}
+#fileInput{display:none}
+.file-preview{
+ max-width:790px;margin:0 auto 8px;display:flex;gap:7px;flex-wrap:wrap
+}
+.file-chip{
+ background:#3a3a3a;border:1px solid #555;border-radius:9px;
+ padding:6px 9px;font-size:12px;color:#eee;display:flex;gap:8px;align-items:center
+}
+.file-chip button{border:0;background:transparent;color:#ffaaaa;cursor:pointer}
 .sidebar-bottom{
  margin-top:auto;color:var(--muted);font-size:12px;
  padding:10px 8px;line-height:1.5
@@ -67,17 +88,14 @@ button,input,textarea{font:inherit}
  flex-direction:column;gap:24px
 }
 .msg{
- display:flex;gap:14px;align-items:flex-start;line-height:1.65;
+ display:flex;gap:0;align-items:flex-start;line-height:1.65;
  white-space:pre-wrap;overflow-wrap:anywhere
 }
-.avatar{
- width:30px;height:30px;border-radius:50%;flex:0 0 30px;
- display:grid;place-items:center;background:#3b3b3b;
- font-size:13px;font-weight:700
-}
-.msg.user .avatar{background:#7657c8}
-.msg.bot .avatar{background:var(--accent)}
 .msg-content{flex:1;padding-top:3px;min-width:0}
+.msg-label{
+ display:block;font-size:12px;font-weight:700;color:#a1a1aa;
+ letter-spacing:.04em;margin:0 0 6px
+}
 .msg-actions{margin-top:7px;display:flex;gap:8px;flex-wrap:wrap}
 .copy-btn{
  background:transparent;border:0;color:var(--muted);
@@ -181,7 +199,10 @@ button,input,textarea{font:inherit}
   </section>
 
   <div class="composer-wrap">
+   <div class="file-preview" id="filePreview"></div>
    <div class="composer">
+    <input id="fileInput" type="file" accept="image/jpeg,image/png,image/webp,image/gif,application/pdf" multiple>
+    <button class="attach-btn" id="attachBtn" type="button" aria-label="Attach photos or PDF">＋</button>
     <textarea id="userInput" rows="1"
      placeholder="Message ur Prince..." autocomplete="off"></textarea>
     <button id="sendBtn" aria-label="Send message">↑</button>
@@ -203,7 +224,11 @@ const sendBtn=document.getElementById("sendBtn");
 const stopBtn=document.getElementById("stopBtn");
 const historyList=document.getElementById("historyList");
 const sidebar=document.getElementById("sidebar");
+const fileInput=document.getElementById("fileInput");
+const attachBtn=document.getElementById("attachBtn");
+const filePreview=document.getElementById("filePreview");
 
+let selectedFiles=[];
 let chats=[];
 let currentChat=null;
 let activeController=null;
@@ -231,15 +256,53 @@ function makeChat(){
 function renderHistory(){
  historyList.innerHTML="";
  chats.forEach(chat=>{
+  const row=document.createElement("div");
+  row.className="history-row";
+
   const b=document.createElement("button");
-  b.className="history-item";
+  b.className="history-item"+(currentChat===chat?" active":"");
   b.textContent=chat.title||"New chat";
+  b.title=chat.title||"New chat";
   b.onclick=()=>{
    currentChat=chat;
+   renderHistory();
    renderChat();
    sidebar.classList.remove("open");
   };
-  historyList.appendChild(b);
+
+  const rename=document.createElement("button");
+  rename.className="rename-chat-btn";
+  rename.type="button";
+  rename.textContent="✎";
+  rename.title="Rename chat";
+  rename.setAttribute("aria-label","Rename chat");
+  rename.onclick=()=>{
+   const newName=prompt("Enter a new name for this chat:",chat.title||"New chat");
+   if(newName===null)return;
+   const cleanName=newName.trim();
+   if(!cleanName){alert("Chat name cannot be empty.");return;}
+   chat.title=cleanName.slice(0,60);
+   saveChats();
+   renderHistory();
+  };
+
+  const remove=document.createElement("button");
+  remove.className="rename-chat-btn";
+  remove.type="button";
+  remove.textContent="×";
+  remove.title="Delete chat";
+  remove.setAttribute("aria-label","Delete chat");
+  remove.onclick=()=>{
+   if(!confirm(`Delete "${chat.title||"New chat"}"? This cannot be undone.`))return;
+   chats=chats.filter(item=>item.id!==chat.id);
+   if(currentChat===chat)currentChat=chats[0]||null;
+   saveChats();
+   renderHistory();
+   renderChat();
+  };
+
+  row.append(b,rename,remove);
+  historyList.appendChild(row);
  });
 }
 
@@ -247,17 +310,20 @@ function addMessage(text,who,isError=false,prompt=null,chat=null,botTurn=null){
  const row=document.createElement("div");
  row.className="msg "+who;
 
- const avatar=document.createElement("div");
- avatar.className="avatar";
- avatar.textContent=who==="user"?"Y":"UP";
-
  const content=document.createElement("div");
  content.className="msg-content";
- content.textContent=text;
+
+ const label=document.createElement("div");
+ label.className="msg-label";
+ label.textContent=who==="user"?"YOU":"ur Prince";
+
+ const messageText=document.createElement("div");
+ messageText.textContent=text;
+ content.append(label,messageText);
 
  if(isError)content.classList.add("error");
 
- row.append(avatar,content);
+ row.append(content);
  messagesEl.appendChild(row);
  chatScroll.scrollTop=chatScroll.scrollHeight;
 
@@ -281,7 +347,6 @@ function addMessage(text,who,isError=false,prompt=null,chat=null,botTurn=null){
 
   content.appendChild(actions);
  }
-
  return row;
 }
 
@@ -298,11 +363,9 @@ function renderChat(){
     prompt=currentChat.turns[index-1].text;
     botTurn=t;
    }
-
    addMessage(t.text,t.who,false,prompt,currentChat,botTurn);
   });
  }
-
  chatScroll.scrollTop=chatScroll.scrollHeight;
 }
 
@@ -311,15 +374,20 @@ function renderTyping(){
  row.className="msg bot";
  row.id="typing";
 
- const avatar=document.createElement("div");
- avatar.className="avatar";
- avatar.textContent="UP";
+ const content=document.createElement("div");
+ content.className="msg-content";
+
+ const label=document.createElement("div");
+ label.className="msg-label";
+ label.textContent="ur Prince";
+ content.appendChild(label);
 
  const dots=document.createElement("div");
  dots.className="typing";
  dots.innerHTML="<span></span><span></span><span></span>";
 
- row.append(avatar,dots);
+ content.appendChild(dots);
+ row.append(content);
  messagesEl.appendChild(row);
  chatScroll.scrollTop=chatScroll.scrollHeight;
  return row;
@@ -331,11 +399,11 @@ function stopGeneration(){
  }
 }
 
-async function requestAI(message){
+async function requestAI(message,files=[]){
  const response=await fetch("/api/chat",{
   method:"POST",
   headers:{"Content-Type":"application/json"},
-  body:JSON.stringify({message}),
+  body:JSON.stringify({message,files}),
   signal:activeController.signal
  });
 
@@ -359,7 +427,6 @@ async function requestAI(message){
  if(!data.reply){
   throw new Error("AI returned an empty reply.");
  }
-
  return data.reply;
 }
 
@@ -372,7 +439,6 @@ async function regenerateResponse(prompt,chat,botTurn){
  sendBtn.style.display="none";
  stopBtn.style.display="block";
 
- const oldText=botTurn.text;
  const messageRow=renderTyping();
 
  try{
@@ -410,14 +476,14 @@ async function regenerateResponse(prompt,chat,botTurn){
 }
 
 async function sendMessage(){
- const message=input.value.trim();
+ let message=input.value.trim();
 
- if(!message||activeController)return;
+ if((!message&&!selectedFiles.length)||activeController)return;
+ if(!message)message="Please analyze the attached file(s).";
 
  if(!currentChat)makeChat();
 
  const chatForRequest=currentChat;
-
  chatForRequest.turns.push({who:"user",text:message});
 
  if(chatForRequest.turns.length===1){
@@ -436,15 +502,17 @@ async function sendMessage(){
  stopBtn.style.display="block";
 
  const typing=renderTyping();
+ const filesForRequest=selectedFiles.slice();
+ selectedFiles=[];
+ renderFilePreview();
+
  const controller=new AbortController();
  activeController=controller;
-
  const timeout=setTimeout(()=>controller.abort(),90000);
 
  try{
-  const reply=await requestAI(message);
+  const reply=await requestAI(message,filesForRequest);
   clearTimeout(timeout);
-
   typing.remove();
 
   const botTurn={who:"bot",text:reply};
@@ -479,7 +547,6 @@ async function sendMessage(){
    sendBtn.style.display="block";
    stopBtn.style.display="none";
   }
-
   input.focus();
  }
 }
@@ -505,6 +572,78 @@ input.addEventListener("keydown",e=>{
 input.addEventListener("input",()=>{
  input.style.height="auto";
  input.style.height=Math.min(input.scrollHeight,160)+"px";
+});
+
+function renderFilePreview(){
+ filePreview.innerHTML="";
+ selectedFiles.forEach((file,index)=>{
+  const chip=document.createElement("div");
+  chip.className="file-chip";
+
+  const label=document.createElement("span");
+  label.textContent=file.name;
+
+  const remove=document.createElement("button");
+  remove.type="button";
+  remove.textContent="×";
+  remove.title="Remove file";
+  remove.onclick=()=>{
+   selectedFiles.splice(index,1);
+   renderFilePreview();
+  };
+
+  chip.append(label,remove);
+  filePreview.appendChild(chip);
+ });
+}
+
+function fileToBase64(file){
+ return new Promise((resolve,reject)=>{
+  const reader=new FileReader();
+  reader.onload=()=>{
+   const result=String(reader.result||"");
+   resolve({
+    name:file.name,
+    mimeType:file.type,
+    data:result.split(",")[1]
+   });
+  };
+  reader.onerror=()=>reject(new Error("Could not read "+file.name));
+  reader.readAsDataURL(file);
+ });
+}
+
+attachBtn.addEventListener("click",()=>fileInput.click());
+
+fileInput.addEventListener("change",async()=>{
+ const incoming=Array.from(fileInput.files||[]);
+ fileInput.value="";
+
+ for(const file of incoming){
+  const isImage=["image/jpeg","image/png","image/webp","image/gif"].includes(file.type);
+  const isPdf=file.type==="application/pdf";
+
+  if(!isImage&&!isPdf){
+   alert(file.name+" is not supported. Please choose an image or PDF.");
+   continue;
+  }
+  if(file.size>5*1024*1024){
+   alert(file.name+" is larger than 5 MB. Please choose a smaller file.");
+   continue;
+  }
+  if(selectedFiles.length>=3){
+   alert("You can attach up to 3 files at a time.");
+   break;
+  }
+
+  try{
+   const encoded=await fileToBase64(file);
+   selectedFiles.push(encoded);
+  }catch(error){
+   alert(error.message);
+  }
+ }
+ renderFilePreview();
 });
 
 renderHistory();

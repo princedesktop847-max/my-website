@@ -6,54 +6,129 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ur Prince</title>
 <style>
-:root{color-scheme:dark;--bg:#212121;--panel:#171717;--panel2:#2f2f2f;--line:#383838;--text:#ececec;--muted:#a1a1aa;--accent:#10a37f}
+:root{
+ color-scheme:dark;
+ --bg:#212121;
+ --panel:#171717;
+ --text:#ececec;
+ --muted:#a1a1aa;
+ --accent:#10a37f;
+}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,Helvetica,sans-serif;height:100vh;overflow:hidden}
+body{
+ margin:0;background:var(--bg);color:var(--text);
+ font-family:Arial,Helvetica,sans-serif;height:100vh;overflow:hidden
+}
 button,input,textarea{font:inherit}
 .app{display:flex;height:100vh;width:100%}
-.sidebar{width:260px;background:var(--panel);padding:14px 12px;display:flex;flex-direction:column;gap:12px;flex-shrink:0}
-.brand{display:flex;align-items:center;gap:10px;padding:8px 7px 14px;font-weight:700;font-size:17px}
-.brand img{height:42px;width:42px;border-radius:50%;object-fit:cover;border:2px solid var(--accent)}
-.new-chat{display:flex;align-items:center;gap:10px;background:transparent;border:1px solid #555;color:var(--text);border-radius:9px;padding:12px;text-align:left;cursor:pointer}
+.sidebar{
+ width:260px;background:var(--panel);padding:14px 12px;
+ display:flex;flex-direction:column;gap:12px;flex-shrink:0
+}
+.brand{
+ display:flex;align-items:center;gap:10px;padding:8px 7px 14px;
+ font-weight:700;font-size:17px
+}
+.brand img{
+ height:38px;width:38px;border-radius:50%;object-fit:cover;
+ border:1px solid #555
+}
+.new-chat{
+ display:flex;align-items:center;gap:10px;background:transparent;
+ border:1px solid #555;color:var(--text);border-radius:9px;
+ padding:12px;text-align:left;cursor:pointer
+}
 .new-chat:hover,.history-item:hover{background:#292929}
 .sidebar-label{font-size:12px;color:var(--muted);padding:12px 8px 2px}
 .history{overflow:auto;display:flex;flex-direction:column;gap:4px}
-.history-item{border:0;background:transparent;color:#ddd;text-align:left;padding:10px;border-radius:8px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.sidebar-bottom{margin-top:auto;color:var(--muted);font-size:12px;padding:10px 8px;line-height:1.5}
+.history-item{
+ border:0;background:transparent;color:#ddd;text-align:left;
+ padding:10px;border-radius:8px;cursor:pointer;white-space:nowrap;
+ overflow:hidden;text-overflow:ellipsis
+}
+.sidebar-bottom{
+ margin-top:auto;color:var(--muted);font-size:12px;
+ padding:10px 8px;line-height:1.5
+}
 .main{flex:1;min-width:0;display:flex;flex-direction:column;position:relative}
-.topbar{height:58px;display:flex;align-items:center;justify-content:space-between;padding:0 22px;border-bottom:1px solid #303030}
+.topbar{
+ height:58px;display:flex;align-items:center;justify-content:space-between;
+ padding:0 22px;border-bottom:1px solid #303030
+}
 .top-title{font-weight:600}
 .profile{display:flex;align-items:center;gap:9px;color:var(--muted);font-size:13px}
-.profile img{width:34px;height:34px;border-radius:50%;object-fit:cover;border:1px solid #555}
+.profile img{width:34px;height:34px;border-radius:50%;object-fit:cover}
 .chat-scroll{flex:1;overflow-y:auto;padding:28px 18px 170px}
 .welcome{max-width:760px;margin:12vh auto 0;text-align:center}
 .welcome h1{font-size:32px;margin:0 0 12px;font-weight:600}
 .welcome p{color:var(--muted);margin:0}
-.messages{max-width:790px;margin:0 auto;display:flex;flex-direction:column;gap:24px}
-.msg{display:flex;gap:14px;align-items:flex-start;line-height:1.65;white-space:pre-wrap;overflow-wrap:anywhere}
-.avatar{width:30px;height:30px;border-radius:50%;flex:0 0 30px;display:grid;place-items:center;background:#3b3b3b;font-size:13px;font-weight:700}
+.messages{
+ max-width:790px;margin:0 auto;display:flex;
+ flex-direction:column;gap:24px
+}
+.msg{
+ display:flex;gap:14px;align-items:flex-start;line-height:1.65;
+ white-space:pre-wrap;overflow-wrap:anywhere
+}
+.avatar{
+ width:30px;height:30px;border-radius:50%;flex:0 0 30px;
+ display:grid;place-items:center;background:#3b3b3b;
+ font-size:13px;font-weight:700
+}
 .msg.user .avatar{background:#7657c8}
 .msg.bot .avatar{background:var(--accent)}
 .msg-content{flex:1;padding-top:3px;min-width:0}
-.msg-actions{margin-top:7px}
-.copy-btn{background:transparent;border:0;color:var(--muted);cursor:pointer;padding:4px 7px;border-radius:6px;font-size:12px}
+.msg-actions{margin-top:7px;display:flex;gap:8px;flex-wrap:wrap}
+.copy-btn{
+ background:transparent;border:0;color:var(--muted);
+ cursor:pointer;padding:4px 7px;border-radius:6px;font-size:12px
+}
 .copy-btn:hover{background:#333;color:white}
 .typing{display:flex;gap:5px;padding:8px 0}
-.typing span{width:7px;height:7px;background:#aaa;border-radius:50%;animation:bounce 1s infinite ease-in-out}
+.typing span{
+ width:7px;height:7px;background:#aaa;border-radius:50%;
+ animation:bounce 1s infinite ease-in-out
+}
 .typing span:nth-child(2){animation-delay:.15s}
 .typing span:nth-child(3){animation-delay:.3s}
-@keyframes bounce{0%,80%,100%{transform:translateY(0);opacity:.5}40%{transform:translateY(-5px);opacity:1}}
-.composer-wrap{position:absolute;bottom:0;left:0;right:0;padding:18px 20px 14px;background:linear-gradient(transparent,var(--bg) 22%)}
-.composer{max-width:790px;margin:auto;background:#2f2f2f;border:1px solid #484848;border-radius:18px;padding:10px 12px;display:flex;align-items:flex-end;gap:10px;box-shadow:0 5px 25px #0005}
-#userInput{flex:1;resize:none;max-height:160px;min-height:28px;border:0;outline:0;background:transparent;color:var(--text);padding:8px 4px;font-size:15px;line-height:1.5}
+@keyframes bounce{
+ 0%,80%,100%{transform:translateY(0);opacity:.5}
+ 40%{transform:translateY(-5px);opacity:1}
+}
+.composer-wrap{
+ position:absolute;bottom:0;left:0;right:0;padding:18px 20px 14px;
+ background:linear-gradient(transparent,var(--bg) 22%)
+}
+.composer{
+ max-width:790px;margin:auto;background:#2f2f2f;
+ border:1px solid #484848;border-radius:18px;padding:10px 12px;
+ display:flex;align-items:flex-end;gap:10px;box-shadow:0 5px 25px #0005
+}
+#userInput{
+ flex:1;resize:none;max-height:160px;min-height:28px;border:0;
+ outline:0;background:transparent;color:var(--text);
+ padding:8px 4px;font-size:15px;line-height:1.5
+}
 #userInput::placeholder{color:#aaa}
-#sendBtn{width:38px;height:38px;border:0;border-radius:12px;background:#ececec;color:#111;cursor:pointer;font-size:18px;font-weight:bold}
+#sendBtn,#stopBtn{
+ width:38px;height:38px;border:0;border-radius:12px;
+ cursor:pointer;font-size:17px;font-weight:bold
+}
+#sendBtn{background:#ececec;color:#111}
+#stopBtn{background:#e05252;color:white;display:none}
 #sendBtn:disabled{opacity:.4;cursor:not-allowed}
 .disclaimer{text-align:center;color:#888;font-size:11px;margin:9px auto 0}
-.mobile-menu{display:none;background:transparent;color:white;border:0;font-size:22px;cursor:pointer}
+.mobile-menu{
+ display:none;background:transparent;color:white;border:0;
+ font-size:22px;cursor:pointer
+}
 .error{color:#ffaaaa}
 @media(max-width:700px){
- .sidebar{position:fixed;z-index:5;top:0;bottom:0;left:0;transform:translateX(-100%);transition:transform .2s;box-shadow:10px 0 30px #0007}
+ .sidebar{
+  position:fixed;z-index:5;top:0;bottom:0;left:0;
+  transform:translateX(-100%);transition:transform .2s;
+  box-shadow:10px 0 30px #0007
+ }
  .sidebar.open{transform:translateX(0)}
  .mobile-menu{display:block}
  .topbar{padding:0 12px}
@@ -72,11 +147,19 @@ button,input,textarea{font:inherit}
    <img src="logo.jpg" alt="ur Prince Logo">
    <span>ur Prince</span>
   </div>
-  <button class="new-chat" id="newChatBtn"><span>＋</span> New chat</button>
+
+  <button class="new-chat" id="newChatBtn">
+   <span>＋</span> New chat
+  </button>
+
   <div class="sidebar-label">Recent chats</div>
   <div class="history" id="historyList"></div>
-  <div class="sidebar-bottom">Powered by Google Gemini<br>ur Prince AI</div>
+
+  <div class="sidebar-bottom">
+   Powered by Google Gemini<br>ur Prince AI
+  </div>
  </aside>
+
  <main class="main">
   <header class="topbar">
    <div style="display:flex;align-items:center;gap:12px">
@@ -84,10 +167,11 @@ button,input,textarea{font:inherit}
     <div class="top-title">ur Prince</div>
    </div>
    <div class="profile">
-    <img src="logo.jpg" alt="Logo">
     <span>AI Assistant</span>
+    <img src="logo.jpg" alt="Logo">
    </div>
   </header>
+
   <section class="chat-scroll" id="chatScroll">
    <div class="welcome" id="welcome">
     <h1>What can I help with?</h1>
@@ -95,140 +179,342 @@ button,input,textarea{font:inherit}
    </div>
    <div class="messages" id="messages"></div>
   </section>
+
   <div class="composer-wrap">
    <div class="composer">
-    <textarea id="userInput" rows="1" placeholder="Message ur Prince..." autocomplete="off"></textarea>
+    <textarea id="userInput" rows="1"
+     placeholder="Message ur Prince..." autocomplete="off"></textarea>
     <button id="sendBtn" aria-label="Send message">↑</button>
+    <button id="stopBtn" aria-label="Stop generation">■</button>
    </div>
-   <div class="disclaimer">ur Prince can make mistakes. Check important information.</div>
+   <div class="disclaimer">
+    ur Prince can make mistakes. Check important information.
+   </div>
   </div>
  </main>
 </div>
+
 <script>
 const chatScroll=document.getElementById("chatScroll");
 const messagesEl=document.getElementById("messages");
 const welcome=document.getElementById("welcome");
 const input=document.getElementById("userInput");
 const sendBtn=document.getElementById("sendBtn");
+const stopBtn=document.getElementById("stopBtn");
 const historyList=document.getElementById("historyList");
 const sidebar=document.getElementById("sidebar");
+
 let chats=[];
 let currentChat=null;
-try{chats=JSON.parse(localStorage.getItem("urPrinceChats")||"[]")}catch{chats=[]}
-function saveChats(){localStorage.setItem("urPrinceChats",JSON.stringify(chats))}
+let activeController=null;
+
+try{
+ chats=JSON.parse(localStorage.getItem("urPrinceChats")||"[]");
+}catch{
+ chats=[];
+}
+
+function saveChats(){
+ localStorage.setItem("urPrinceChats",JSON.stringify(chats));
+}
+
 function makeChat(){
  currentChat={id:Date.now(),title:"New chat",turns:[]};
  chats.unshift(currentChat);
- saveChats();renderHistory();renderChat();input.focus();sidebar.classList.remove("open")
+ saveChats();
+ renderHistory();
+ renderChat();
+ input.focus();
+ sidebar.classList.remove("open");
 }
+
 function renderHistory(){
  historyList.innerHTML="";
  chats.forEach(chat=>{
   const b=document.createElement("button");
   b.className="history-item";
   b.textContent=chat.title||"New chat";
-  b.onclick=()=>{currentChat=chat;renderChat();sidebar.classList.remove("open")};
+  b.onclick=()=>{
+   currentChat=chat;
+   renderChat();
+   sidebar.classList.remove("open");
+  };
   historyList.appendChild(b);
  });
 }
-function addMessage(text,who,isError=false){
+
+function addMessage(text,who,isError=false,prompt=null,chat=null,botTurn=null){
  const row=document.createElement("div");
  row.className="msg "+who;
+
  const avatar=document.createElement("div");
  avatar.className="avatar";
- avatar.textContent=who==="user"?"Y":"HB";
+ avatar.textContent=who==="user"?"Y":"UP";
+
  const content=document.createElement("div");
  content.className="msg-content";
  content.textContent=text;
+
  if(isError)content.classList.add("error");
+
  row.append(avatar,content);
  messagesEl.appendChild(row);
  chatScroll.scrollTop=chatScroll.scrollHeight;
+
  if(who==="bot"&&!isError){
   const actions=document.createElement("div");
   actions.className="msg-actions";
+
   const copy=document.createElement("button");
   copy.className="copy-btn";
   copy.textContent="Copy";
   copy.onclick=()=>navigator.clipboard?.writeText(text);
   actions.appendChild(copy);
+
+  if(prompt&&chat&&botTurn){
+   const regenerate=document.createElement("button");
+   regenerate.className="copy-btn";
+   regenerate.textContent="↻ Regenerate";
+   regenerate.onclick=()=>regenerateResponse(prompt,chat,botTurn);
+   actions.appendChild(regenerate);
+  }
+
   content.appendChild(actions);
  }
+
  return row;
 }
+
 function renderChat(){
  messagesEl.innerHTML="";
  welcome.style.display=currentChat&&currentChat.turns.length?"none":"block";
- if(currentChat)currentChat.turns.forEach(t=>addMessage(t.text,t.who));
+
+ if(currentChat){
+  currentChat.turns.forEach((t,index)=>{
+   let prompt=null;
+   let botTurn=null;
+
+   if(t.who==="bot"&&index>0&&currentChat.turns[index-1].who==="user"){
+    prompt=currentChat.turns[index-1].text;
+    botTurn=t;
+   }
+
+   addMessage(t.text,t.who,false,prompt,currentChat,botTurn);
+  });
+ }
+
  chatScroll.scrollTop=chatScroll.scrollHeight;
 }
+
 function renderTyping(){
  const row=document.createElement("div");
  row.className="msg bot";
  row.id="typing";
+
  const avatar=document.createElement("div");
  avatar.className="avatar";
- avatar.textContent="HB";
+ avatar.textContent="UP";
+
  const dots=document.createElement("div");
  dots.className="typing";
  dots.innerHTML="<span></span><span></span><span></span>";
+
  row.append(avatar,dots);
  messagesEl.appendChild(row);
  chatScroll.scrollTop=chatScroll.scrollHeight;
  return row;
 }
+
+function stopGeneration(){
+ if(activeController){
+  activeController.abort();
+ }
+}
+
+async function requestAI(message){
+ const response=await fetch("/api/chat",{
+  method:"POST",
+  headers:{"Content-Type":"application/json"},
+  body:JSON.stringify({message}),
+  signal:activeController.signal
+ });
+
+ const raw=await response.text();
+ let data;
+
+ try{
+  data=JSON.parse(raw);
+ }catch{
+  throw new Error("Server returned an invalid response.");
+ }
+
+ if(!response.ok){
+  throw new Error(
+   typeof data.error==="string"
+   ?data.error
+   :JSON.stringify(data.error||data)
+  );
+ }
+
+ if(!data.reply){
+  throw new Error("AI returned an empty reply.");
+ }
+
+ return data.reply;
+}
+
+async function regenerateResponse(prompt,chat,botTurn){
+ if(activeController)return;
+
+ const controller=new AbortController();
+ activeController=controller;
+
+ sendBtn.style.display="none";
+ stopBtn.style.display="block";
+
+ const oldText=botTurn.text;
+ const messageRow=renderTyping();
+
+ try{
+  const timeout=setTimeout(()=>controller.abort(),90000);
+  const reply=await requestAI(prompt);
+  clearTimeout(timeout);
+
+  botTurn.text=reply;
+  saveChats();
+
+  if(currentChat===chat){
+   renderChat();
+  }
+
+ }catch(error){
+  if(error.name==="AbortError"){
+   if(currentChat===chat){
+    messageRow.remove();
+    renderChat();
+   }
+  }else{
+   messageRow.remove();
+   if(currentChat===chat){
+    addMessage("Regenerate Error: "+error.message,"bot",true);
+   }
+  }
+
+ }finally{
+  if(activeController===controller){
+   activeController=null;
+   sendBtn.style.display="block";
+   stopBtn.style.display="none";
+  }
+ }
+}
+
 async function sendMessage(){
  const message=input.value.trim();
- if(!message||sendBtn.disabled)return;
+
+ if(!message||activeController)return;
+
  if(!currentChat)makeChat();
- currentChat.turns.push({who:"user",text:message});
- if(currentChat.turns.length===1)currentChat.title=message.slice(0,36);
- saveChats();renderHistory();
+
+ const chatForRequest=currentChat;
+
+ chatForRequest.turns.push({who:"user",text:message});
+
+ if(chatForRequest.turns.length===1){
+  chatForRequest.title=message.slice(0,36);
+ }
+
+ saveChats();
+ renderHistory();
  welcome.style.display="none";
  addMessage(message,"user");
+
  input.value="";
  input.style.height="auto";
- sendBtn.disabled=true;
+
+ sendBtn.style.display="none";
+ stopBtn.style.display="block";
+
  const typing=renderTyping();
  const controller=new AbortController();
+ activeController=controller;
+
  const timeout=setTimeout(()=>controller.abort(),90000);
+
  try{
-  const response=await fetch("/api/chat",{
-   method:"POST",
-   headers:{"Content-Type":"application/json"},
-   body:JSON.stringify({message}),
-   signal:controller.signal
-  });
-  const raw=await response.text();
-  let data;
-  try{data=JSON.parse(raw)}catch{throw new Error("Server returned an invalid response.")}
-  if(!response.ok)throw new Error(typeof data.error==="string"?data.error:JSON.stringify(data.error||data));
-  if(!data.reply)throw new Error("AI returned an empty reply.");
+  const reply=await requestAI(message);
+  clearTimeout(timeout);
+
   typing.remove();
-  currentChat.turns.push({who:"bot",text:data.reply});
+
+  const botTurn={who:"bot",text:reply};
+  chatForRequest.turns.push(botTurn);
   saveChats();
-  addMessage(data.reply,"bot");
+
+  if(currentChat===chatForRequest){
+   addMessage(reply,"bot",false,message,chatForRequest,botTurn);
+  }
+
  }catch(error){
   typing.remove();
-  addMessage(error.name==="AbortError"?"Request timed out. Please try again.":"Actual Error: "+error.message,"bot",true);
+
+  if(error.name==="AbortError"){
+   chatForRequest.turns.push({who:"bot",text:"Generation stopped."});
+   saveChats();
+
+   if(currentChat===chatForRequest){
+    addMessage("Generation stopped.","bot");
+   }
+  }else{
+   if(currentChat===chatForRequest){
+    addMessage("Actual Error: "+error.message,"bot",true);
+   }
+  }
+
  }finally{
   clearTimeout(timeout);
-  sendBtn.disabled=false;
+
+  if(activeController===controller){
+   activeController=null;
+   sendBtn.style.display="block";
+   stopBtn.style.display="none";
+  }
+
   input.focus();
  }
 }
-document.getElementById("newChatBtn").addEventListener("click",makeChat);
-document.getElementById("menuBtn").addEventListener("click",()=>sidebar.classList.toggle("open"));
+
+document.getElementById("newChatBtn")
+ .addEventListener("click",makeChat);
+
+document.getElementById("menuBtn")
+ .addEventListener("click",()=>{
+  sidebar.classList.toggle("open");
+ });
+
 sendBtn.addEventListener("click",sendMessage);
+stopBtn.addEventListener("click",stopGeneration);
+
 input.addEventListener("keydown",e=>{
- if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendMessage()}
+ if(e.key==="Enter"&&!e.shiftKey){
+  e.preventDefault();
+  sendMessage();
+ }
 });
+
 input.addEventListener("input",()=>{
  input.style.height="auto";
  input.style.height=Math.min(input.scrollHeight,160)+"px";
 });
+
 renderHistory();
-if(chats.length){currentChat=chats[0];renderChat()}else{welcome.style.display="block"}
+
+if(chats.length){
+ currentChat=chats[0];
+ renderChat();
+}else{
+ welcome.style.display="block";
+}
 </script>
 </body>
 </html>

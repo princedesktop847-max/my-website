@@ -7,13 +7,29 @@ require("dotenv").config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// ==========================================
+// MIDDLEWARE
+// ==========================================
+
 app.use(express.json({ limit: "22mb" }));
-app.use("/.well-known", express.static(path.join(__dirname, ".well-known")));
+
+// Android Digital Asset Links
+app.use(
+    "/.well-known",
+    express.static(path.join(__dirname, ".well-known"))
+);
+
+// Serve website files
 app.use(express.static(__dirname));
 
+// Homepage
 app.get("/", (req, res) => {
     res.sendFile(path.join(__dirname, "index.html"));
 });
+
+// ==========================================
+// API KEYS AND AI MODELS
+// ==========================================
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const GROQ_API_KEY = process.env.GROQ_API_KEY;
@@ -32,11 +48,60 @@ const GEMINI_MODEL = "gemini-3.5-flash-lite";
 const GROQ_MODEL = "llama-3.3-70b-versatile";
 const OPENAI_MODEL = "gpt-4o-mini";
 
-const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+const sleep = ms =>
+    new Promise(resolve => setTimeout(resolve, ms));
 
-// Groq / OpenAI text API
+// ==========================================
+// UR AI IDENTITY AND PRINCE'S BIOGRAPHY
+// ==========================================
 
-async function callChatAPI(provider, apiKey, model, message, history = []) {
+const SYSTEM_INSTRUCTION = `
+You are UR AI, created and developed by Prince Prasad.
+
+IDENTITY:
+- Your name is UR AI.
+- Your creator and developer is Prince Prasad.
+- Google Gemini, Groq and OpenAI are AI providers, not your creators.
+- Never claim that Google, OpenAI or Groq created UR AI.
+
+ABOUT PRINCE:
+- Full name: Prince Prasad.
+- Location: Khetko, Bagodar, Jharkhand, India.
+- Education: Class 9 student.
+- Interests: Artificial Intelligence, Robotics and Computer Science.
+- He created UR AI to test his knowledge, explore his technical abilities and gain personal satisfaction.
+ABOUT NICKY:
+- Nicky is Prince's girlfriend.
+- Prince considers Nicky very beautiful.
+- Prince lovingly calls her "Rani Ji".
+- If someone asks about Nicky, share these details naturally.
+- Do not mention Nicky or this relationship in unrelated conversations.
+- Do not invent any additional information about Nicky.
+
+BIOGRAPHY PRIVACY RULES:
+- Share Prince's biography only when someone asks about Prince, your creator, or who developed UR AI.
+- Do not reveal Prince's personal information during unrelated conversations.
+- Do not invent additional personal details about Prince.
+- If a user asks who created UR AI, clearly identify Prince Prasad.
+- Answer naturally, confidently and respectfully.
+
+GENERAL BEHAVIOUR:
+- Be helpful, accurate and friendly.
+- Give clear and useful answers.
+- Admit when you do not know something.
+`;
+
+// ==========================================
+// GROQ / OPENAI TEXT API
+// ==========================================
+
+async function callChatAPI(
+    provider,
+    apiKey,
+    model,
+    message,
+    history = []
+) {
     const url = provider === "Groq"
         ? "https://api.groq.com/openai/v1/chat/completions"
         : "https://api.openai.com/v1/chat/completions";
@@ -44,19 +109,22 @@ async function callChatAPI(provider, apiKey, model, message, history = []) {
     const messages = [
         {
             role: "system",
-            content: "You are UR AI, a helpful, accurate and friendly AI assistant. Give clear and useful answers."
+            content: SYSTEM_INSTRUCTION
         },
+
         ...history
             .filter(turn =>
                 turn &&
-                ["user", "assistant"].includes(turn.role) &&
-                typeof turn.content === "string"
+                ["user", "model", "assistant"].includes(turn.role) &&
+                typeof turn.content === "string" &&
+                turn.content.trim()
             )
             .slice(-20)
             .map(turn => ({
-                role: turn.role === "assistant" ? "assistant" : "user",
+                role: turn.role === "user" ? "user" : "assistant",
                 content: turn.content
             })),
+
         {
             role: "user",
             content: message
@@ -80,6 +148,7 @@ async function callChatAPI(provider, apiKey, model, message, history = []) {
 
     if (!response.ok) {
         const details = await response.text();
+
         throw new Error(
             `${provider} API error ${response.status}: ${details.slice(0, 300)}`
         );
@@ -95,7 +164,9 @@ async function callChatAPI(provider, apiKey, model, message, history = []) {
     return reply;
 }
 
-// Gemini with retry
+// ==========================================
+// GEMINI WITH RETRY
+// ==========================================
 
 async function callGemini(message, files, history = []) {
     let lastError;
@@ -103,12 +174,12 @@ async function callGemini(message, files, history = []) {
     for (let attempt = 1; attempt <= 2; attempt++) {
         try {
             const contents = [];
-            
 
-            
+            // Previous conversation
             for (const turn of history) {
                 if (
-                    (turn.role === "user" || turn.role === "model") &&
+                    turn &&
+                    ["user", "model"].includes(turn.role) &&
                     typeof turn.content === "string" &&
                     turn.content.trim()
                 ) {
@@ -119,8 +190,10 @@ async function callGemini(message, files, history = []) {
                 }
             }
 
+            // Current message
             const parts = [{ text: message }];
 
+            // Attachments
             for (const file of files) {
                 parts.push({
                     inlineData: {
@@ -139,20 +212,10 @@ async function callGemini(message, files, history = []) {
                 model: GEMINI_MODEL,
                 contents,
                 config: {
-    systemInstruction: `You are UR AI, created and developed by Prince.
-
-Your identity rules:
-- Your name is UR AI.
-- Your creator and developer is Prince.
-- If someone asks who created you, clearly say that Prince created UR AI.
-- If someone asks who Prince is, explain that Prince is your creator and developer.
-- Google did not create UR AI. Google Gemini is only one of the AI models that powers UR AI.
-- Never claim that Google, OpenAI, or Groq created UR AI.
-- Always answer identity questions confidently and naturally.
-- Do not invent personal details about Prince that you have not been told.`,
-    maxOutputTokens: 700,
-    temperature: 0.7
-}
+                    systemInstruction: SYSTEM_INSTRUCTION,
+                    maxOutputTokens: 700,
+                    temperature: 0.7
+                }
             });
 
             if (!response.text) {
@@ -163,9 +226,13 @@ Your identity rules:
 
         } catch (error) {
             lastError = error;
+
             const status = Number(error.status || error.code);
 
-            if (![429, 500, 502, 503, 504].includes(status) || attempt === 2) {
+            if (
+                ![429, 500, 502, 503, 504].includes(status) ||
+                attempt === 2
+            ) {
                 throw error;
             }
 
@@ -177,8 +244,10 @@ Your identity rules:
     throw lastError;
 }
 
+// ==========================================
+// SERVER STATUS
+// ==========================================
 
-// Status endpoint
 app.get("/api/status", (req, res) => {
     res.json({
         server: "Running",
@@ -190,27 +259,35 @@ app.get("/api/status", (req, res) => {
     });
 });
 
-// Chat endpoint
+// ==========================================
+// CHAT API
+// ==========================================
+
 app.post("/api/chat", async (req, res) => {
     try {
         const message = req.body?.message;
         const files = req.body?.files ?? [];
-        const history = Array.isArray(req.body?.history)
-    ? req.body.history
-        .filter(turn =>
-            turn &&
-            ["user", "model"].includes(turn.role) &&
-            typeof turn.content === "string"
-        )
-        .slice(-20)
-    : [];
 
+        // Conversation history
+        const history = Array.isArray(req.body?.history)
+            ? req.body.history
+                .filter(turn =>
+                    turn &&
+                    ["user", "model"].includes(turn.role) &&
+                    typeof turn.content === "string" &&
+                    turn.content.trim()
+                )
+                .slice(-20)
+            : [];
+
+        // Validate message
         if (typeof message !== "string" || !message.trim()) {
             return res.status(400).json({
                 error: "Please enter a valid message."
             });
         }
 
+        // Validate attachments
         if (!Array.isArray(files) || files.length > 3) {
             return res.status(400).json({
                 error: "Please attach no more than 3 files."
@@ -238,7 +315,10 @@ app.post("/api/chat", async (req, res) => {
                 });
             }
 
-            if (Buffer.byteLength(file.data, "base64") > 5 * 1024 * 1024) {
+            if (
+                Buffer.byteLength(file.data, "base64") >
+                5 * 1024 * 1024
+            ) {
                 return res.status(400).json({
                     error: `${file.name} is larger than 5 MB.`
                 });
@@ -255,49 +335,61 @@ app.post("/api/chat", async (req, res) => {
 
         console.log("User message received:", cleanMessage);
         console.log("Attached files:", files.length);
+        console.log("History turns:", history.length);
+
+        // ==================================
+        // PROVIDER FALLBACK ORDER
+        // Gemini -> Groq -> OpenAI
+        // ==================================
 
         const providers = [];
 
         if (GEMINI_API_KEY) {
             providers.push({
                 name: "Gemini",
-                run: () => callGemini(cleanMessage, files, history)
+                run: () =>
+                    callGemini(cleanMessage, files, history)
             });
         }
 
-        // Groq and OpenAI are text-only fallbacks here.
+        // Groq is text-only fallback
         if (files.length === 0 && GROQ_API_KEY) {
             providers.push({
                 name: "Groq",
-                run: () => callChatAPI(
-                    "Groq",
-                    GROQ_API_KEY,
-                    GROQ_MODEL,
-                    cleanMessage,
-                    history
-                )
+                run: () =>
+                    callChatAPI(
+                        "Groq",
+                        GROQ_API_KEY,
+                        GROQ_MODEL,
+                        cleanMessage,
+                        history
+                    )
             });
         }
 
+        // OpenAI is text-only fallback
         if (files.length === 0 && OPENAI_API_KEY) {
             providers.push({
                 name: "OpenAI",
-                run: () => callChatAPI(
-                    "OpenAI",
-                    OPENAI_API_KEY,
-                    OPENAI_MODEL,
-                    cleanMessage, 
-                    history
-                )
+                run: () =>
+                    callChatAPI(
+                        "OpenAI",
+                        OPENAI_API_KEY,
+                        OPENAI_MODEL,
+                        cleanMessage,
+                        history
+                    )
             });
         }
 
+        // Attachments require Gemini
         if (files.length > 0 && !GEMINI_API_KEY) {
             return res.status(503).json({
                 error: "Attachments currently require Gemini. Configure GEMINI_API_KEY."
             });
         }
 
+        // Try providers one by one
         for (const provider of providers) {
             try {
                 console.log(`Trying ${provider.name}...`);
@@ -312,7 +404,10 @@ app.post("/api/chat", async (req, res) => {
                 });
 
             } catch (error) {
-                console.error(`${provider.name} failed:`, error.message);
+                console.error(
+                    `${provider.name} failed:`,
+                    error.message
+                );
             }
         }
 
@@ -329,18 +424,36 @@ app.post("/api/chat", async (req, res) => {
     }
 });
 
-// Unknown routes
+// ==========================================
+// UNKNOWN ROUTES
+// ==========================================
+
 app.use((req, res) => {
     res.status(404).json({
         error: "Route not found."
     });
 });
 
-// Start server
+// ==========================================
+// START SERVER
+// ==========================================
+
 app.listen(PORT, "0.0.0.0", () => {
-    console.log("MY AI CHATBOT SERVER RUNNING");
+    console.log("UR AI SERVER RUNNING");
     console.log(`Port: ${PORT}`);
-    console.log("Gemini:", GEMINI_API_KEY ? "Enabled" : "Not configured");
-    console.log("Groq:", GROQ_API_KEY ? "Enabled" : "Not configured");
-    console.log("OpenAI:", OPENAI_API_KEY ? "Enabled" : "Not configured");
+
+    console.log(
+        "Gemini:",
+        GEMINI_API_KEY ? "Enabled" : "Not configured"
+    );
+
+    console.log(
+        "Groq:",
+        GROQ_API_KEY ? "Enabled" : "Not configured"
+    );
+
+    console.log(
+        "OpenAI:",
+        OPENAI_API_KEY ? "Enabled" : "Not configured"
+    );
 });

@@ -1158,7 +1158,8 @@ function stopGeneration() {
     }
 }
 
-async function requestAI(message, files = []) {
+
+async function requestAI(message, files = [], history = []) {
     const response = await fetch("/api/chat", {
         method: "POST",
         headers: {
@@ -1166,7 +1167,8 @@ async function requestAI(message, files = []) {
         },
         body: JSON.stringify({
             message,
-            files
+            files,
+            history
         }),
         signal: activeController.signal
     });
@@ -1297,7 +1299,19 @@ async function sendMessage() {
     );
 
     try {
-        const reply = await requestAI(message, filesForRequest);
+       const history = chatForRequest.turns
+    .slice(0, -1)
+    .slice(-20)
+    .map(turn => ({
+        role: turn.who === "user" ? "user" : "model",
+        content: turn.text
+    }));
+
+const reply = await requestAI(
+    message,
+    filesForRequest,
+    history
+);
 
         typing.remove();
 

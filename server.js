@@ -34,10 +34,33 @@ const OPENAI_MODEL = "gpt-4o-mini";
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 // Groq / OpenAI text API
-async function callChatAPI(provider, apiKey, model, message) {
+
+async function callChatAPI(provider, apiKey, model, message, history = []) {
     const url = provider === "Groq"
         ? "https://api.groq.com/openai/v1/chat/completions"
         : "https://api.openai.com/v1/chat/completions";
+
+    const messages = [
+        {
+            role: "system",
+            content: "You are UR AI, a helpful, accurate and friendly AI assistant. Give clear and useful answers."
+        },
+        ...history
+            .filter(turn =>
+                turn &&
+                ["user", "assistant"].includes(turn.role) &&
+                typeof turn.content === "string"
+            )
+            .slice(-20)
+            .map(turn => ({
+                role: turn.role === "assistant" ? "assistant" : "user",
+                content: turn.content
+            })),
+        {
+            role: "user",
+            content: message
+        }
+    ];
 
     const response = await fetch(url, {
         method: "POST",
@@ -47,16 +70,7 @@ async function callChatAPI(provider, apiKey, model, message) {
         },
         body: JSON.stringify({
             model,
-            messages: [
-                {
-                    role: "system",
-                    content: "You are ur Prince, a helpful, accurate and friendly AI assistant. Give clear and useful answers."
-                },
-                {
-                    role: "user",
-                    content: message
-                }
-            ],
+            messages,
             temperature: 0.7,
             max_tokens: 700
         }),
@@ -81,11 +95,29 @@ async function callChatAPI(provider, apiKey, model, message) {
 }
 
 // Gemini with retry
-async function callGemini(message, files) {
+
+async function callGemini(message, files, history = []) {
     let lastError;
 
     for (let attempt = 1; attempt <= 2; attempt++) {
         try {
+            const contents = [];
+            
+
+            
+            for (const turn of history) {
+                if (
+                    (turn.role === "user" || turn.role === "model") &&
+                    typeof turn.content === "string" &&
+                    turn.content.trim()
+                ) {
+                    contents.push({
+                        role: turn.role,
+                        parts: [{ text: turn.content }]
+                    });
+                }
+            }
+
             const parts = [{ text: message }];
 
             for (const file of files) {
@@ -97,9 +129,14 @@ async function callGemini(message, files) {
                 });
             }
 
+            contents.push({
+                role: "user",
+                parts
+            });
+
             const response = await ai.models.generateContent({
                 model: GEMINI_MODEL,
-                contents: [{ role: "user", parts }],
+                contents,
                 config: {
                     maxOutputTokens: 700,
                     temperature: 0.7
@@ -128,6 +165,7 @@ async function callGemini(message, files) {
     throw lastError;
 }
 
+
 // Status endpoint
 app.get("/api/status", (req, res) => {
     res.json({
@@ -145,6 +183,15 @@ app.post("/api/chat", async (req, res) => {
     try {
         const message = req.body?.message;
         const files = req.body?.files ?? [];
+        const history = Array.isArray(req.body?.history)
+    ? req.body.history
+        .filter(turn =>
+            turn &&
+            ["user", "model"].includes(turn.role) &&
+            typeof turn.content === "string"
+        )
+        .slice(-20)
+    : [];
 
         if (typeof message !== "string" || !message.trim()) {
             return res.status(400).json({
@@ -202,7 +249,7 @@ app.post("/api/chat", async (req, res) => {
         if (GEMINI_API_KEY) {
             providers.push({
                 name: "Gemini",
-                run: () => callGemini(cleanMessage, files)
+                run: () => callGemini(cleanMessage, files, history)
             });
         }
 
@@ -214,7 +261,8 @@ app.post("/api/chat", async (req, res) => {
                     "Groq",
                     GROQ_API_KEY,
                     GROQ_MODEL,
-                    cleanMessage
+                    cleanMessage,
+                    history
                 )
             });
         }
@@ -226,7 +274,8 @@ app.post("/api/chat", async (req, res) => {
                     "OpenAI",
                     OPENAI_API_KEY,
                     OPENAI_MODEL,
-                    cleanMessage
+                    cleanMessage, 
+                    history
                 )
             });
         }

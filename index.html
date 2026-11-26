@@ -5,7 +5,7 @@
 <meta name="theme-color" content="#111111">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ur Prince AI</title>
+<title>UR AI</title>
 
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/dompurify@3.2.6/dist/purify.min.js"></script>
@@ -14,6 +14,274 @@
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/contrib/auto-render.min.js"></script>
 
 <style>
+
+/* ===== UR AI AI - PREMIUM BLACK MINIMAL REDESIGN ===== */
+
+:root {
+    color-scheme: dark;
+    --bg: #090909;
+    --sidebar: #050505;
+    --panel: #171717;
+    --text: #f5f5f5;
+    --muted: #929292;
+    --border: #292929;
+    --accent: #ffffff;
+}
+
+/* Overall appearance */
+body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: Inter, "Segoe UI", Arial, sans-serif;
+    letter-spacing: -0.15px;
+}
+
+/* Sidebar */
+.sidebar {
+    background: var(--sidebar);
+    border-right: 1px solid #202020;
+    padding: 18px 13px;
+    gap: 15px;
+}
+
+.brand {
+    font-size: 19px;
+    letter-spacing: -0.6px;
+}
+
+.brand img {
+    border: 1px solid #333;
+}
+
+.new-chat {
+    background: #151515;
+    border: 1px solid #303030;
+    border-radius: 12px;
+    padding: 13px;
+    transition: .2s ease;
+}
+
+.new-chat:hover {
+    background: #222;
+    border-color: #555;
+}
+
+.history-item {
+    color: #bdbdbd;
+    border-radius: 9px;
+    transition: .2s ease;
+}
+
+.history-item:hover,
+.history-item.active {
+    background: #1c1c1c;
+    color: white;
+}
+
+/* Top navigation */
+.topbar {
+    height: 64px;
+    background: rgba(9, 9, 9, .94);
+    border-bottom: 1px solid #202020;
+    padding: 0 25px;
+}
+
+.top-title {
+    font-size: 17px;
+    letter-spacing: -.4px;
+}
+
+.profile {
+    color: #aaa;
+}
+
+/* Welcome screen */
+.welcome {
+    max-width: 700px;
+    margin-top: 16vh;
+}
+
+.welcome h1 {
+    font-size: clamp(29px, 4vw, 42px);
+    font-weight: 650;
+    letter-spacing: -1.5px;
+}
+
+.welcome p {
+    color: #888;
+    font-size: 15px;
+}
+
+/* Chat messages */
+.messages {
+    max-width: 820px;
+    gap: 34px;
+}
+
+.sender {
+    color: #858585;
+    font-size: 11px;
+    letter-spacing: 1px;
+}
+
+.msg.user .msg-content {
+    background: #202020;
+    border: 1px solid #303030;
+    border-radius: 18px;
+    padding: 12px 17px;
+}
+
+.msg.bot .msg-content {
+    color: #e8e8e8;
+}
+
+/* Markdown */
+.msg-content blockquote {
+    background: #151515;
+    border-left-color: #777;
+}
+
+.msg-content pre {
+    background: #101010;
+    border: 1px solid #303030;
+}
+
+.msg-content code {
+    background: #202020;
+}
+
+.msg-content th {
+    background: #191919;
+}
+
+.msg-content th,
+.msg-content td {
+    border-color: #333;
+}
+
+/* Message buttons */
+.copy-btn {
+    color: #858585;
+    border: 1px solid transparent;
+    transition: .2s ease;
+}
+
+.copy-btn:hover {
+    background: #1d1d1d;
+    border-color: #333;
+    color: white;
+}
+
+/* Composer */
+.composer-wrap {
+    padding: 20px 20px 14px;
+    background: linear-gradient(transparent, var(--bg) 22%);
+}
+
+.composer {
+    background: #151515;
+    border: 1px solid #353535;
+    border-radius: 22px;
+    padding: 11px 13px;
+    box-shadow: 0 12px 40px #0008;
+    transition: border-color .2s ease;
+}
+
+.composer:focus-within {
+    border-color: #666;
+}
+
+#userInput {
+    color: #f5f5f5;
+}
+
+#userInput::placeholder {
+    color: #777;
+}
+
+.attach-btn {
+    color: #aaa;
+    border-radius: 50%;
+}
+
+.attach-btn:hover {
+    background: #292929;
+    color: white;
+}
+
+#sendBtn {
+    background: #fff;
+    color: #080808;
+    border-radius: 50%;
+    transition: .2s ease;
+}
+
+#sendBtn:hover {
+    background: #d8d8d8;
+    transform: scale(1.04);
+}
+
+#stopBtn {
+    border-radius: 50%;
+}
+
+.file-chip {
+    background: #171717;
+    border-color: #383838;
+}
+
+.disclaimer {
+    color: #666;
+}
+
+/* Scrollbars */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: #383838 transparent;
+}
+
+*::-webkit-scrollbar {
+    width: 6px;
+}
+
+*::-webkit-scrollbar-thumb {
+    background: #383838;
+    border-radius: 10px;
+}
+
+/* Mobile refinement */
+@media (max-width: 700px) {
+    .sidebar {
+        background: #050505;
+        border-right: 1px solid #292929;
+    }
+
+    .topbar {
+        height: 58px;
+        padding: 0 13px;
+    }
+
+    .welcome {
+        margin-top: 13vh;
+    }
+
+    .welcome h1 {
+        font-size: 28px;
+        letter-spacing: -1px;
+    }
+
+    .composer-wrap {
+        background: linear-gradient(transparent, #090909 20%);
+    }
+
+    .composer {
+        background: #151515;
+        border-color: #353535;
+        border-radius: 19px;
+    }
+}
+
+
 :root {
     color-scheme: dark;
     --bg: #212121;
@@ -541,8 +809,8 @@ button { cursor: pointer; }
 <div class="app">
     <aside class="sidebar" id="sidebar">
         <div class="brand">
-            <img src="logo.jpg" alt="ur Prince">
-            <span>ur Prince</span>
+            <img src="logo.jpg" alt="UR AI">
+            <span>UR AI</span>
         </div>
 
         <button class="new-chat" id="newChatBtn">
@@ -553,8 +821,8 @@ button { cursor: pointer; }
         <div class="history" id="historyList"></div>
 
         <div class="sidebar-bottom">
-            Ur Prince<br>
-            ur Prince AI Assistant
+            UR AI<br>
+            UR AI AI Assistant
         </div>
     </aside>
 
@@ -562,7 +830,7 @@ button { cursor: pointer; }
         <header class="topbar">
             <div style="display:flex;align-items:center;gap:12px">
                 <button class="mobile-menu" id="menuBtn">☰</button>
-                <div class="top-title">ur Prince</div>
+                <div class="top-title">UR AI</div>
             </div>
 
             <div class="profile">
@@ -594,14 +862,14 @@ button { cursor: pointer; }
                     type="button" title="Attach photo or PDF">＋</button>
 
                 <textarea id="userInput" rows="1"
-                    placeholder="Message ur Prince..." autocomplete="off"></textarea>
+                    placeholder="Message UR AI..." autocomplete="off"></textarea>
 
                 <button id="sendBtn" aria-label="Send">↑</button>
                 <button id="stopBtn" aria-label="Stop">■</button>
             </div>
 
             <div class="disclaimer">
-                ur Prince can make mistakes. Check important information.
+                UR AI can make mistakes. Check important information.
             </div>
         </div>
     </main>
@@ -764,7 +1032,7 @@ function addMessage(
 
     const sender = document.createElement("div");
     sender.className = "sender";
-    sender.textContent = who === "user" ? "YOU" : "ur Prince";
+    sender.textContent = who === "user" ? "YOU" : "UR AI";
 
     const content = document.createElement("div");
     content.className = "msg-content";
@@ -867,7 +1135,7 @@ function renderTyping() {
 
     const sender = document.createElement("div");
     sender.className = "sender";
-    sender.textContent = "ur Prince";
+    sender.textContent = "UR AI";
 
     const dots = document.createElement("div");
     dots.className = "typing";
@@ -1219,7 +1487,7 @@ if (chats.length) {
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
     navigator.serviceWorker.register("/service-worker.js")
-      .then(() => console.log("ur Prince AI Service Worker Registered"))
+      .then(() => console.log("UR AI AI Service Worker Registered"))
       .catch(error => console.error("Service Worker Error:", error));
   });
 }

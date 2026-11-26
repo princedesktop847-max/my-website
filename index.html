@@ -863,6 +863,7 @@ button { cursor: pointer; }
 
                 <textarea id="userInput" rows="1"
                     placeholder="Message UR AI..." autocomplete="off"></textarea>
+                    <button id="micBtn" type="button" aria-label="Voice input" title="Speak">🎙️</button>
 
                 <button id="sendBtn" aria-label="Send">↑</button>
                 <button id="stopBtn" aria-label="Stop">■</button>
@@ -886,6 +887,41 @@ const historyList = document.getElementById("historyList");
 const sidebar = document.getElementById("sidebar");
 const fileInput = document.getElementById("fileInput");
 const attachBtn = document.getElementById("attachBtn");
+const micBtn = document.getElementById("micBtn");
+const SpeechRecognition =
+    window.SpeechRecognition || window.webkitSpeechRecognition;
+
+let recognition = null;
+
+if (SpeechRecognition) {
+    recognition = new SpeechRecognition();
+    recognition.lang = "hi-IN";
+    recognition.continuous = false;
+    recognition.interimResults = false;
+} else {
+    micBtn.disabled = true;
+    micBtn.title = "Voice input is not supported in this browser";
+}
+if (recognition) {
+    micBtn.addEventListener("click", () => {
+        recognition.start();
+        micBtn.textContent = "🔴";
+    });
+
+    recognition.onresult = (event) => {
+        input.value = event.results[0][0].transcript;
+        input.focus();
+        micBtn.textContent = "🎙️";
+    };
+
+    recognition.onerror = () => {
+        micBtn.textContent = "🎙️";
+    };
+
+    recognition.onend = () => {
+        micBtn.textContent = "🎙️";
+    };
+}
 const filePreview = document.getElementById("filePreview");
 
 let selectedFiles = [];

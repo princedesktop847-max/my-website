@@ -8,6 +8,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(express.json({ limit: "22mb" }));
+app.use("/.well-known", express.static(path.join(__dirname, ".well-known")));
 app.use(express.static(__dirname));
 
 app.get("/", (req, res) => {
